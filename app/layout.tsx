@@ -1,18 +1,19 @@
 import type { Metadata, Viewport } from 'next'
-import { Press_Start_2P, Noto_Sans_SC } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import localFont from 'next/font/local'
 import './globals.css'
 
-const pressStart = Press_Start_2P({
-  weight: '400',
-  subsets: ['latin'],
+const pressStart = localFont({
+  src: '../public/fonts/PressStart2P.woff2',
   variable: '--font-press-start',
   display: 'swap',
 })
 
-const notoSC = Noto_Sans_SC({
-  weight: ['400', '700', '900'],
-  subsets: ['latin'],
+const notoSC = localFont({
+  src: [
+    { path: '../public/fonts/NotoSansSC-Regular.woff2', weight: '400', style: 'normal' },
+    { path: '../public/fonts/NotoSansSC-Bold.woff2', weight: '700', style: 'normal' },
+  ],
   variable: '--font-cjk',
   display: 'swap',
 })
