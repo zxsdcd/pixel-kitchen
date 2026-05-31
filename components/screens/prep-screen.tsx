@@ -179,23 +179,20 @@ export function PrepScreen() {
         </div>
       </div>
 
-      {/* 长按起锅 */}
+      {/* 起锅烧油 */}
       <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] bg-gradient-to-t from-background via-background to-transparent px-3 pb-4 pt-6">
         {allDone ? (
-          <button
-            onPointerDown={startHold}
-            onPointerUp={endHold}
-            onPointerLeave={endHold}
-            className="pixel-border bg-destructive text-primary-foreground relative w-full select-none overflow-hidden px-6 py-4 font-pixel text-sm"
+          <PixelButton
+            full
+            size="lg"
+            glow
+            onClick={() => {
+              addToast("备菜完成！起锅烧油 🔥")
+              navigate("cook")
+            }}
           >
-            <span
-              className="absolute inset-0 bg-accent/40"
-              style={{ width: `${hold}%`, transition: "width 50ms linear" }}
-            />
-            <span className="relative">
-              {hold > 0 ? `蓄力中 ${hold}%` : "🔥 长按 起锅烧油"}
-            </span>
-          </button>
+            🔥 开始做饭
+          </PixelButton>
         ) : (
           <PixelButton full size="lg" variant="secondary" disabled>
             完成全部备菜后解锁 ({done.size}/{steps.length})
