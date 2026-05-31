@@ -21,37 +21,91 @@ import { DishCard } from "@/components/pixel/dish-card"
 const MODES = [
   { key: "recommend", icon: "⚡", label: "快速推荐" },
   { key: "blindbox", icon: "🎲", label: "盲盒模式" },
+  { key: "fridge", icon: "🧊", label: "冰箱匹配" },
   { key: "manual", icon: "📋", label: "自己选菜" },
 ] as const
 
 export function SelectScreen() {
-  const { selectedDishes, toggleDish, isSelected, navigate, addToast, clearSelection } = useGame()
-  const [cat, setCat] = useState<Category | "全部">("全部")
+  const { selectedDishes, toggleDish, isSelected, navigate, addToast, clearSelection, isFavorite } = useGame()
+  const [cat, setCat] = useState<Category | "全部" | "收藏">("全部")
   const [search, setSearch] = useState("")
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid')
   const season = SEASON_LABEL[CURRENT_TERM.season]
 
   const filtered = useMemo(() => {
     return DISHES.filter((d) => {
-      const okCat = cat === "全部" || d.category === cat
+      const okCat = cat === "全部" || (cat === "收藏" ? isFavorite(d.id) : d.category === cat)
       const okSearch = !search || d.name.includes(search) || d.desc.includes(search) || d.tags.some(t => t.includes(search))
       return okCat && okSearch
     })
-  }, [cat, search])
+  }, [cat, search, isFavorite])
+
+  // 智能推荐逻辑
+  const smartRecommend = useMemo(() => {
+    const hour = new Date().getHours()
+    let timeTag = ""
+    let timeLabel = ""
+    if (hour >= 5 && hour < 10) {
+      timeTag = "早餐"
+      timeLabel = "早餐"
+    } else if (hour >= 10 && hour < 14) {
+      timeTag = "午餐"
+      timeLabel = "午餐"
+    } else if (hour >= 14 && hour < 17) {
+      timeTag = "下午茶"
+      timeLabel = "下午茶"
+    } else if (hour >= 17 && hour < 21) {
+      timeTag = "晚餐"
+      timeLabel = "晚餐"
+    } else {
+      timeTag = "夜宵"
+      timeLabel = "夜宵"
+    }
+
+    // 按时间段+季节+标签匹配
+    const candidates = DISHES.filter((d) => {
+      const hasTimeTag = d.tags.some(t => t.includes(timeTag))
+      const hasSeasonTag = d.tags.some(t => t.includes(CURRENT_TERM.season))
+      const isSimple = d.difficulty <= 2 && (timeTag === "早餐" || timeTag === "夜宵")
+      return hasTimeTag || hasSeasonTag || isSimple
+    })
+
+    // 去重，取前3个
+    const seen = new Set<string>()
+    const result: typeof DISHES = []
+    for (const d of candidates) {
+      if (!seen.has(d.id) && result.length < 3) {
+        seen.add(d.id)
+        result.push(d)
+      }
+    }
+
+    // 如果不够，从节气推荐补
+    if (result.length < 3) {
+      for (const id of CURRENT_TERM.recommend) {
+        const d = getDish(id)
+        if (d && !seen.has(d.id) && result.length < 3) {
+          seen.add(d.id)
+          result.push(d)
+        }
+      }
+    }
+
+    return { dishes: result, label: timeLabel }
+  }, [])
 
   function handleMode(key: (typeof MODES)[number]["key"]) {
     if (key === "recommend") {
       clearSelection()
-      CURRENT_TERM.recommend.forEach((id) => {
-        const d = getDish(id)
-        if (d) toggleDish(d)
-      })
-      addToast(`已按「${CURRENT_TERM.name}」节气推荐 ${CURRENT_TERM.recommend.length} 道菜`, "success")
+      smartRecommend.dishes.forEach((d) => toggleDish(d))
+      addToast(`🤖 ${smartRecommend.label}智能推荐 ${smartRecommend.dishes.length} 道菜`, "success")
     } else if (key === "blindbox") {
       clearSelection()
       const random = DISHES[Math.floor(Math.random() * DISHES.length)]
       toggleDish(random)
       addToast(`🎲 盲盒开出：${random.emoji} ${random.name}！`, "success")
+    } else if (key === "fridge") {
+      navigate("fridge")
     } else {
       clearSelection()
       addToast("自由挑选你想做的菜吧～", "warning")
@@ -121,7 +175,7 @@ export function SelectScreen() {
         </PixelCard>
 
         {/* 模式按钮 */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {MODES.map((m) => (
             <button
               key={m.key}
@@ -157,6 +211,15 @@ export function SelectScreen() {
         {/* 分类筛选 + 视图切换 */}
         <div className="flex items-center gap-2">
           <div className="no-scrollbar flex flex-1 gap-1.5 overflow-x-auto pb-1">
+            <button
+              onClick={() => setCat("收藏")}
+              className={cn(
+                "pixel-border-sm shrink-0 px-2.5 py-1.5 font-[family-name:var(--font-cjk)] text-xs transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-none",
+                cat === "收藏" ? "bg-destructive text-primary-foreground" : "bg-surface text-muted-foreground",
+              )}
+            >
+              ❤️ 收藏
+            </button>
             {CATEGORIES.map((c) => (
               <button
                 key={c}

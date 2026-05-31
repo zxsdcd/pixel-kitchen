@@ -10,6 +10,7 @@ import { PrepScreen } from "@/components/screens/prep-screen"
 import { CookScreen } from "@/components/screens/cook-screen"
 import { RecipesScreen } from "@/components/screens/recipes-screen"
 import { AchievementsScreen } from "@/components/screens/achievements-screen"
+import { FridgeScreen } from "@/components/screens/fridge-screen"
 
 export function GameShell() {
   const { screen } = useGame()
@@ -25,6 +26,7 @@ export function GameShell() {
       {screen === "cook" && <CookScreen />}
       {screen === "recipes" && <RecipesScreen />}
       {screen === "achievements" && <AchievementsScreen />}
+      {screen === "fridge" && <FridgeScreen />}
 
       {screen !== "landing" && <HelpFab />}
     </main>

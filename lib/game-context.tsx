@@ -19,6 +19,7 @@ export type Screen =
   | "cook"
   | "recipes"
   | "achievements"
+  | "fridge"
 
 export type ToastType = "success" | "warning" | "error"
 export interface ToastItem {
@@ -39,6 +40,10 @@ interface GameState {
   cookedDishes: Dish[]
   addCookedDish: (d: Dish) => void
 
+  favorites: string[]
+  toggleFavorite: (id: string) => void
+  isFavorite: (id: string) => boolean
+
   toasts: ToastItem[]
   addToast: (message: string, type?: ToastType) => void
   dismissToast: (id: number) => void
@@ -53,6 +58,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [screen, setScreen] = useState<Screen>("landing")
   const [selectedDishes, setSelectedDishes] = useState<Dish[]>([])
   const [cookedDishes, setCookedDishes] = useState<Dish[]>([])
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("pixel-kitchen-favorites")
+        return saved ? JSON.parse(saved) : []
+      } catch { return [] }
+    }
+    return []
+  })
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [achievements, setAchievements] = useState<Achievement[]>(ACHIEVEMENTS)
   const idRef = useRef(0)
@@ -105,6 +119,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  const toggleFavorite = useCallback((id: string) => {
+    setFavorites((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      if (typeof window !== "undefined") {
+        localStorage.setItem("pixel-kitchen-favorites", JSON.stringify(next))
+      }
+      return next
+    })
+  }, [])
+
+  const isFavorite = useCallback((id: string) => favorites.includes(id), [favorites])
+
   return (
     <GameContext.Provider
       value={{
@@ -116,6 +142,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         isSelected,
         cookedDishes,
         addCookedDish,
+        favorites,
+        toggleFavorite,
+        isFavorite,
         toasts,
         addToast,
         dismissToast,

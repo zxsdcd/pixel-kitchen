@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils"
 import type { Dish } from "@/lib/game-data"
 import { DifficultyStars } from "./pixel-ui"
+import { useGame } from "@/lib/game-context"
 
 export function DishCard({
   dish,
@@ -15,6 +16,9 @@ export function DishCard({
   onClick?: () => void
   compact?: boolean
 }) {
+  const { isFavorite, toggleFavorite } = useGame()
+  const fav = isFavorite(dish.id)
+
   return (
     <button
       onClick={onClick}
@@ -56,6 +60,19 @@ export function DishCard({
             ))}
           </div>
         )}
+      </div>
+      {/* 收藏按钮 */}
+      <div
+        onClick={(e) => {
+          e.stopPropagation()
+          toggleFavorite(dish.id)
+        }}
+        className={cn(
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all",
+          fav ? "text-destructive" : "text-muted-foreground hover:text-foreground",
+        )}
+      >
+        {fav ? "❤️" : "🤍"}
       </div>
     </button>
   )
