@@ -102,10 +102,14 @@ export function CookScreen() {
           if (doneCount === selectedDishes.length) {
             setTimeout(() => setFinished(true), 600)
           } else {
+            // 自动跳转到下一道未完成的菜
             const nextIdx = selectedDishes.findIndex(
               (d) => (next[d.id]?.size ?? 0) < d.cook.length,
             )
-            if (nextIdx >= 0) addToast(`切换到下一道：${selectedDishes[nextIdx].name}`, "success")
+            if (nextIdx >= 0) {
+              setActive(nextIdx)
+              addToast(`🎯 自动切换到：${selectedDishes[nextIdx].name}`, "success")
+            }
           }
         }, 0)
       }
@@ -326,23 +330,35 @@ export function CookScreen() {
       </div>
 
       {/* 全部完成弹窗 */}
-      <PixelModal open={finished} onClose={() => setFinished(false)} title="开饭啦！">
+      <PixelModal open={finished} onClose={() => setFinished(false)} title="🎉 开饭啦！">
         <div className="flex flex-col items-center gap-4 py-2 text-center">
-          <div className="flex gap-2 text-4xl">
+          <div className="flex gap-2 text-5xl">
             {selectedDishes.map((d) => (
               <span key={d.id} className="animate-bounce-pix">
                 {d.emoji}
               </span>
             ))}
           </div>
-          <p className="font-[family-name:var(--font-cjk)] text-sm leading-relaxed">
-            恭喜！你完成了 <b className="text-primary">{selectedDishes.length}</b> 道菜，
-            一桌香喷喷的饭菜出锅啦！
-          </p>
-          <div className="bg-surface-2 pixel-border-sm w-full px-3 py-2 font-[family-name:var(--font-cjk)] text-xs">
-            🎉 自己动手，丰衣足食！每一口都是满满的成就感～
+          <div className="space-y-2">
+            <p className="font-[family-name:var(--font-cjk)] text-lg font-black text-primary">
+              恭喜你！完成了 {selectedDishes.length} 道菜！
+            </p>
+            <p className="font-[family-name:var(--font-cjk)] text-sm text-muted-foreground">
+              一桌香喷喷的饭菜出锅啦～
+            </p>
           </div>
-          <PixelButton full glow onClick={finishAll}>
+          <div className="w-full space-y-2">
+            <div className="bg-success/10 pixel-border-sm w-full px-4 py-3 font-[family-name:var(--font-cjk)] text-sm">
+              🌟 你真的太棒了！自己动手做的饭，吃起来格外香！
+            </div>
+            <div className="bg-primary/10 pixel-border-sm w-full px-4 py-3 font-[family-name:var(--font-cjk)] text-sm">
+              💪 每一道菜都是你的用心之作，好好享受这顿饭吧！
+            </div>
+            <div className="bg-accent/10 pixel-border-sm w-full px-4 py-3 font-[family-name:var(--font-cjk)] text-sm">
+              ❤️ 记得拍照留念哦～记录下你的厨艺时刻！
+            </div>
+          </div>
+          <PixelButton full glow onClick={finishAll} className="mt-2">
             🍽️ 再来一桌
           </PixelButton>
         </div>

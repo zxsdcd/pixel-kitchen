@@ -28,6 +28,7 @@ export function SelectScreen() {
   const { selectedDishes, toggleDish, isSelected, navigate, addToast, clearSelection } = useGame()
   const [cat, setCat] = useState<Category | "全部">("全部")
   const [search, setSearch] = useState("")
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid')
   const season = SEASON_LABEL[CURRENT_TERM.season]
 
   const filtered = useMemo(() => {
@@ -153,9 +154,9 @@ export function SelectScreen() {
           )}
         </div>
 
-        {/* 分类筛选 */}
-        <div className="-mx-1">
-          <div className="no-scrollbar flex gap-1.5 overflow-x-auto px-1 pb-1">
+        {/* 分类筛选 + 视图切换 */}
+        <div className="flex items-center gap-2">
+          <div className="no-scrollbar flex flex-1 gap-1.5 overflow-x-auto pb-1">
             {CATEGORIES.map((c) => (
               <button
                 key={c}
@@ -169,25 +170,55 @@ export function SelectScreen() {
               </button>
             ))}
           </div>
+          <button
+            onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
+            className="pixel-border-sm bg-surface px-2 py-1.5 text-sm"
+            title={viewMode === 'list' ? '切换网格视图' : '切换列表视图'}
+          >
+            {viewMode === 'list' ? '⊞' : '☰'}
+          </button>
         </div>
 
         {/* 菜品列表 */}
-        <div className="space-y-2">
-          {filtered.length === 0 ? (
-            <p className="py-8 text-center font-[family-name:var(--font-cjk)] text-xs text-muted-foreground">
-              没有符合条件的菜品，换个筛选试试～
-            </p>
-          ) : (
-            filtered.map((d) => (
+        {filtered.length === 0 ? (
+          <p className="py-8 text-center font-[family-name:var(--font-cjk)] text-xs text-muted-foreground">
+            没有符合条件的菜品，换个筛选试试～
+          </p>
+        ) : viewMode === 'grid' ? (
+          /* 网格视图 - 更紧凑 */
+          <div className="grid grid-cols-3 gap-2">
+            {filtered.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => toggleDish(d)}
+                className={cn(
+                  "pixel-border-sm flex flex-col items-center gap-1 p-2 text-center transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-none",
+                  isSelected(d.id) ? "bg-primary/20 ring-2 ring-primary" : "bg-card",
+                )}
+              >
+                <span className="text-2xl">{d.emoji}</span>
+                <span className="font-[family-name:var(--font-cjk)] text-[11px] font-bold truncate w-full">{d.name}</span>
+                <div className="flex items-center gap-1">
+                  <DifficultyStars level={d.difficulty} />
+                  <span className="font-pixel text-[8px] text-muted-foreground">{d.time}m</span>
+                </div>
+                {isSelected(d.id) && <span className="text-success text-xs">✓</span>}
+              </button>
+            ))}
+          </div>
+        ) : (
+          /* 列表视图 */
+          <div className="space-y-2">
+            {filtered.map((d) => (
               <DishCard
                 key={d.id}
                 dish={d}
                 selected={isSelected(d.id)}
                 onClick={() => toggleDish(d)}
               />
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* 已选详情 */}
         {selectedDishes.length > 0 && (
