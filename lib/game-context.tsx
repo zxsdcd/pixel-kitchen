@@ -81,7 +81,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setSelectedDishes((prev) => {
       const exists = prev.some((x) => x.id === d.id)
       if (exists) return prev.filter((x) => x.id !== d.id)
-      if (prev.length >= 4) return prev
+      // 无上限
       return [...prev, d]
     })
   }, [])

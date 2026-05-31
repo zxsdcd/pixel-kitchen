@@ -194,7 +194,7 @@ export function SelectScreen() {
           <PixelCard className="animate-pop-in p-3">
             <div className="mb-2 flex items-center justify-between">
               <span className="font-[family-name:var(--font-cjk)] text-xs font-bold text-primary">
-                🛒 今日菜单 ({selectedDishes.length}/4)
+                🛒 今日菜单 ({selectedDishes.length}道)
               </span>
               <button
                 onClick={clearSelection}
